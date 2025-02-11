@@ -1,0 +1,24 @@
+version: '3.7'
+
+services:
+  db:
+    image: postgis/postgis:16-3.4
+    container_name: OrganisationCard-database
+    env_file:
+      - .env
+    ports:
+      - "5432:5432"
+    volumes:
+      - /etc/database/db-auth-mc:/var/lib/postgresql/data
+
+
+  app:
+    build:
+      context: .
+    container_name: OrganisationCard-app
+    ports:
+      - "8080:8000"
+    depends_on:
+      - db
+
+
