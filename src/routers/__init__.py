@@ -1,3 +1,3 @@
-from .organisation import router as organisation_router
+from .organisation import router as organisations_router
 
-routers = [organisation_router]
+routers = [organisations_router]

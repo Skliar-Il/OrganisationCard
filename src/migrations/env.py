@@ -6,6 +6,7 @@ from sqlalchemy import pool
 
 from src.config import settings
 from src.database.config import Base
+from src.database.models import *  # noqa
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
