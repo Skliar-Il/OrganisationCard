@@ -1,10 +1,10 @@
 from uuid import UUID
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException, status
 
+from src.repositories.activity import ActivityRepository
 from src.repositories.organisation import OrganisationRepository
-from src.repositories.phone import PhoneRepository
-from src.schemas.organisation import SCreateOrganisation
+from src.schemas.organisation import SOrganisationGet, SOrganisationList, SOrganisationID
 from src.service.organisation import OrganisationService
 from src.utils.loger import Logger
 
@@ -21,31 +21,125 @@ def get_logger() -> Logger:
 def get_organisation_service(
         logger: Logger = Depends(get_logger),
         organisation_repository=Depends(OrganisationRepository),
-        phone_repository=Depends(PhoneRepository)
+        activity_repository=Depends(ActivityRepository)
 ) -> OrganisationService:
     return OrganisationService(
         logger,
         organisation_repository,
-        phone_repository
+        activity_repository
     )
 
 
-# @router.post(
-#     "/new",
-#     summary="create new organisation",
-#     status_code=201,
-#     name="new organisation",
-#     description="For phone number use format X-XXX-XXX-XX-XX or X-XXX-XXX"
-# )
-# async def create_organisation(organisation_info: SCreateOrganisation,
-#                               service: OrganisationService = Depends(get_organisation_service)) -> None:
-#     print(organisation_info.phone)
-
 @router.get(
     "/{id_}",
-    summary="get organisation",
     status_code=200,
-    name="get organisation",
+    summary="get organisation",
     description="get organisation by ID"
 )
-async def get_organisation(id_: UUID) ->
+async def get_organisation(
+        id_: UUID,
+        logger: Logger = Depends(get_logger),
+        service: OrganisationService = Depends(get_organisation_service)
+) -> SOrganisationGet:
+    logger.info("func: get_organisation")
+
+    try:
+        result = await service.get_organisation(id_)
+
+    except ValueError as e:
+        if len(e.args) > 0 and e.args[0] == "invalid id":
+            logger.warning("bad request")
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="invalid id, not found")
+        else:
+            logger.error(f"server error, not now exception: {e}")
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    logger.info("Success: get_organisation")
+
+    return result
+
+
+@router.get(
+    "/building/{id_}",
+    status_code=200,
+    summary="organisation in building",
+    description="get organisations by building id"
+)
+async def get_organisations_building(
+        id_: UUID,
+        logger: Logger = Depends(get_logger),
+        service: OrganisationService = Depends(get_organisation_service)
+) -> list[SOrganisationList]:
+    logger.info("func: get_organisations_building")
+
+    try:
+        result = await service.get_organisations_by_building(id_)
+
+    except ValueError as e:
+        if len(e.args) > 0 and e.args[0] == "invalid id":
+            logger.warning("bad request")
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="invalid id, not found")
+        else:
+            logger.error(f"server error, not now exception: {e}")
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    logger.info("Success: get_organisations_building")
+
+    return result
+
+
+@router.get(
+    "/activity/{name}",
+    status_code=200,
+    summary="organisations by activity",
+    description="get organisations by activity"
+)
+async def get_organisations_by_activity(
+        name: str,
+        logger: Logger = Depends(get_logger),
+        service: OrganisationService = Depends(get_organisation_service)
+) -> list[SOrganisationList]:
+    logger.info("func: get_organisations_by_activity")
+
+    try:
+        result = await service.get_organisation_by_activity(name)
+
+    except ValueError as e:
+        if len(e.args) > 0 and e.args[0] == "invalid id":
+            logger.warning("bad request")
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="invalid id, not found")
+        else:
+            logger.error(f"server error, not now exception: {e}")
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    logger.info("Success: get_organisations_by_activity")
+    return result
+
+
+@router.get(
+    "/name/{name}",
+    status_code=200,
+    summary="organisation by name",
+    description="get organisation by name"
+)
+async def get_organisation_by_name(
+        name: str,
+        logger: Logger = Depends(get_logger),
+        service: OrganisationService = Depends(get_organisation_service)
+) -> SOrganisationID:
+    logger.info("func: get_organisation_by_name")
+
+    try:
+        result = await service.get_organisation_by_name(name)
+
+    except ValueError as e:
+        if len(e.args) > 0 and e.args[0] == "invalid name":
+            logger.warning("bad request")
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="invalid name, not found")
+        else:
+            logger.error(f"server error, not now exception: {e}")
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    logger.info("Success: get_organisation_by_name ")
+
+    return result

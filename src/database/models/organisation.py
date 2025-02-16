@@ -24,3 +24,8 @@ class Organisation(Base):
         secondary=organization_activity_association,
         back_populates="organisations"
     )
+    building = relationship(
+        "Building",
+        back_populates="organisation",
+        uselist=False
+    )

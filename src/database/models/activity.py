@@ -1,4 +1,4 @@
-from sqlalchemy import ForeignKey
+from sqlalchemy import ForeignKey, CheckConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.database.config import Base
@@ -10,8 +10,13 @@ class Activity(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(unique=True)
-    parent_id: Mapped[int] = mapped_column(ForeignKey("activity.id"), nullable=True)
+    parent_id: Mapped[int | None] = mapped_column(ForeignKey("activity.id"))
     depth: Mapped[int] = mapped_column(default=0)
+
+    __table_args__ = (
+        CheckConstraint('depth >= 0 AND depth <= 2', name='check_depth_range'),
+    )
+
     parent = relationship(
         "Activity",
         remote_side=[id],

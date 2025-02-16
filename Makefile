@@ -9,3 +9,6 @@ stop:
 
 up:
 	uvicorn src.main:app --reload
+
+seed:
+	python -m seeds.seed
